@@ -5,6 +5,10 @@ edition = "2021"
 description = "High-performance Google Workspace CLI for AI agent integration"
 license = "MIT"
 
+[features]
+default = ["cli"]
+cli = ["clap"]
+
 [dependencies]
 # Async runtime
 tokio = { version = "1", features = ["full"] }
@@ -12,7 +16,7 @@ futures = "0.3"
 async-stream = "0.3"
 
 # CLI
-clap = { version = "4", features = ["derive", "env"] }
+clap = { version = "4", features = ["derive", "env"], optional = true }
 
 # HTTP & Serialization
 reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }

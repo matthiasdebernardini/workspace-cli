@@ -9,6 +9,10 @@ pub struct Config {
     pub output: OutputConfig,
     #[serde(default)]
     pub api: ApiConfig,
+    /// Custom config directory override. When set, all paths resolve relative
+    /// to this directory instead of the default `~/.config/workspace-cli/`.
+    #[serde(skip)]
+    pub config_dir_override: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -59,6 +63,7 @@ impl Default for Config {
             auth: AuthConfig::default(),
             output: OutputConfig::default(),
             api: ApiConfig::default(),
+            config_dir_override: None,
         }
     }
 }
@@ -93,25 +98,57 @@ impl Default for ApiConfig {
 impl Config {
     /// Load config from file, falling back to defaults
     pub fn load() -> Self {
-        Self::config_path()
+        Self::default_config_path()
             .and_then(|path| std::fs::read_to_string(path).ok())
             .and_then(|content| toml::from_str(&content).ok())
             .unwrap_or_default()
     }
 
-    /// Get the config file path
-    pub fn config_path() -> Option<PathBuf> {
-        dirs::config_dir().map(|p| p.join("workspace-cli").join("config.toml"))
+    /// Load config from a custom directory.
+    pub fn load_from_dir(dir: impl Into<PathBuf>) -> Self {
+        let dir = dir.into();
+        let path = dir.join("config.toml");
+        let mut config = std::fs::read_to_string(path)
+            .ok()
+            .and_then(|content| toml::from_str::<Self>(&content).ok())
+            .unwrap_or_default();
+        config.config_dir_override = Some(dir);
+        config
     }
 
-    /// Get the config directory path
-    pub fn config_dir() -> Option<PathBuf> {
+    /// Set a custom config directory, returning `self` for chaining.
+    pub fn with_config_dir(mut self, dir: impl Into<PathBuf>) -> Self {
+        self.config_dir_override = Some(dir.into());
+        self
+    }
+
+    /// Get the config file path (instance method, respects override).
+    pub fn config_path(&self) -> Option<PathBuf> {
+        self.config_dir().map(|d| d.join("config.toml"))
+    }
+
+    /// Get the config directory path (instance method, respects override).
+    pub fn config_dir(&self) -> Option<PathBuf> {
+        if let Some(ref dir) = self.config_dir_override {
+            Some(dir.clone())
+        } else {
+            Self::default_config_dir()
+        }
+    }
+
+    /// Default config directory (static, no override).
+    pub fn default_config_dir() -> Option<PathBuf> {
         dirs::config_dir().map(|p| p.join("workspace-cli"))
+    }
+
+    /// Default config file path (static, no override).
+    pub fn default_config_path() -> Option<PathBuf> {
+        Self::default_config_dir().map(|d| d.join("config.toml"))
     }
 
     /// Save config to file
     pub fn save(&self) -> std::io::Result<()> {
-        if let Some(dir) = Self::config_dir() {
+        if let Some(dir) = self.config_dir() {
             std::fs::create_dir_all(&dir)?;
             let path = dir.join("config.toml");
             let content = toml::to_string_pretty(self)

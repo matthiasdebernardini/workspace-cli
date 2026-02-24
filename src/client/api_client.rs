@@ -29,22 +29,22 @@ pub struct ApiClient {
 
 impl ApiClient {
     /// Create a new API client
-    pub fn new(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
+    pub fn new(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
         let http = Client::builder()
             .timeout(Duration::from_secs(30))
             .pool_max_idle_per_host(10)
             .pool_idle_timeout(Duration::from_secs(90))
             .tcp_keepalive(Duration::from_secs(60))
             .build()
-            .expect("Failed to create HTTP client");
+            .map_err(WorkspaceError::from)?;
 
-        Self {
+        Ok(Self {
             http,
             token_manager,
             rate_limiter: None,
             retry_config: RetryConfig::default(),
             base_url: String::new(),
-        }
+        })
     }
 
     /// Set the base URL for this client
@@ -66,59 +66,59 @@ impl ApiClient {
     }
 
     /// Create a Gmail client
-    pub fn gmail(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn gmail(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::GMAIL)
             .with_rate_limiter(ApiRateLimiter::gmail())
-            .with_retry_config(RetryConfig::conservative())
+            .with_retry_config(RetryConfig::conservative()))
     }
 
     /// Create a Drive client
-    pub fn drive(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn drive(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::DRIVE)
             .with_rate_limiter(ApiRateLimiter::drive())
-            .with_retry_config(RetryConfig::conservative())
+            .with_retry_config(RetryConfig::conservative()))
     }
 
     /// Create a Calendar client
-    pub fn calendar(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn calendar(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::CALENDAR)
             .with_rate_limiter(ApiRateLimiter::calendar())
-            .with_retry_config(RetryConfig::default())
+            .with_retry_config(RetryConfig::default()))
     }
 
     /// Create a Docs client
-    pub fn docs(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn docs(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::DOCS)
             .with_rate_limiter(ApiRateLimiter::docs())
-            .with_retry_config(RetryConfig::aggressive())
+            .with_retry_config(RetryConfig::aggressive()))
     }
 
     /// Create a Sheets client
-    pub fn sheets(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn sheets(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::SHEETS)
             .with_rate_limiter(ApiRateLimiter::docs())
-            .with_retry_config(RetryConfig::aggressive())
+            .with_retry_config(RetryConfig::aggressive()))
     }
 
     /// Create a Slides client
-    pub fn slides(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn slides(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::SLIDES)
             .with_rate_limiter(ApiRateLimiter::docs())
-            .with_retry_config(RetryConfig::aggressive())
+            .with_retry_config(RetryConfig::aggressive()))
     }
 
     /// Create a Tasks client
-    pub fn tasks(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Self {
-        Self::new(token_manager)
+    pub fn tasks(token_manager: std::sync::Arc<tokio::sync::RwLock<TokenManager>>) -> Result<Self, WorkspaceError> {
+        Ok(Self::new(token_manager)?
             .with_base_url(endpoints::TASKS)
             .with_rate_limiter(ApiRateLimiter::tasks())
-            .with_retry_config(RetryConfig::default())
+            .with_retry_config(RetryConfig::default()))
     }
 
     /// Build full URL from path

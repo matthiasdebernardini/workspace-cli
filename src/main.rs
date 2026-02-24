@@ -753,7 +753,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::gmail(token_manager.clone());
+            let client = ApiClient::gmail(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1134,7 +1134,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::drive(token_manager.clone());
+            let client = ApiClient::drive(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1429,7 +1429,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::calendar(token_manager.clone());
+            let client = ApiClient::calendar(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1554,7 +1554,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::docs(token_manager.clone());
+            let client = ApiClient::docs(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1645,7 +1645,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::sheets(token_manager.clone());
+            let client = ApiClient::sheets(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1781,7 +1781,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::slides(token_manager.clone());
+            let client = ApiClient::slides(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {
@@ -1861,7 +1861,7 @@ async fn run(cli: Cli) -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            let client = ApiClient::tasks(token_manager.clone());
+            let client = ApiClient::tasks(token_manager.clone())?;
             let mut formatter = Formatter::new(format).with_fields(fields.clone()).with_quiet(quiet);
 
             match command {

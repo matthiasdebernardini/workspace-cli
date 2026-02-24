@@ -22,6 +22,23 @@ impl TokenManager {
         }
     }
 
+    /// Create a token manager with a custom service name (e.g. "dailyclaw-google").
+    ///
+    /// The service name is used as the keyring identifier for token storage.
+    pub fn with_config(config: Config, service_name: &str) -> Self {
+        let config_dir = config.config_dir();
+        Self {
+            authenticator: None,
+            storage: TokenStorage::with_service_name(
+                service_name,
+                "default",
+                config_dir.as_deref(),
+            ),
+            credentials_path: None,
+            config,
+        }
+    }
+
     /// Try to restore authenticator from cached tokens
     /// Call this before making API requests
     pub async fn ensure_authenticated(&mut self) -> Result<(), TokenManagerError> {
@@ -73,7 +90,7 @@ impl TokenManager {
             // Current directory
             PathBuf::from("credentials.json"),
             // Config directory
-            Config::config_dir().map(|d| d.join("credentials.json")).unwrap_or_default(),
+            self.config.config_dir().map(|d| d.join("credentials.json")).unwrap_or_default(),
             // Home directory
             dirs::home_dir().map(|d| d.join("credentials.json")).unwrap_or_default(),
             dirs::home_dir().map(|d| d.join(".credentials.json")).unwrap_or_default(),
@@ -212,7 +229,8 @@ impl TokenManager {
 
     /// Get the token cache file path
     fn token_cache_path(&self) -> PathBuf {
-        Config::config_dir()
+        self.config
+            .config_dir()
             .map(|d| d.join("token_cache.json"))
             .unwrap_or_else(|| PathBuf::from("token_cache.json"))
     }

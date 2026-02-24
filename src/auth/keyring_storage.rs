@@ -1,7 +1,7 @@
 use keyring::Entry;
 use serde::{Deserialize, Serialize};
 
-const SERVICE_NAME: &str = "workspace-cli";
+const DEFAULT_SERVICE_NAME: &str = "workspace-cli";
 
 /// Token data stored in keyring
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -19,7 +19,12 @@ pub struct KeyringStorage {
 impl KeyringStorage {
     /// Create a new keyring storage for the given user/account
     pub fn new(account: &str) -> Result<Self, KeyringError> {
-        let entry = Entry::new(SERVICE_NAME, account)
+        Self::with_service_name(DEFAULT_SERVICE_NAME, account)
+    }
+
+    /// Create keyring storage with a custom service name (e.g. "dailyclaw-google")
+    pub fn with_service_name(service_name: &str, account: &str) -> Result<Self, KeyringError> {
+        let entry = Entry::new(service_name, account)
             .map_err(|e| KeyringError::InitFailed(e.to_string()))?;
         Ok(Self { entry })
     }
@@ -148,10 +153,21 @@ pub struct TokenStorage {
 impl TokenStorage {
     /// Create new token storage, trying keyring first
     pub fn new(account: &str) -> Self {
-        let keyring = KeyringStorage::new(account).ok();
+        Self::with_service_name(DEFAULT_SERVICE_NAME, account, None)
+    }
+
+    /// Create token storage with a custom service name and optional config dir.
+    pub fn with_service_name(
+        service_name: &str,
+        account: &str,
+        config_dir: Option<&std::path::Path>,
+    ) -> Self {
+        let keyring = KeyringStorage::with_service_name(service_name, account).ok();
 
         // Use account-specific file path to support multiple accounts
-        let file_path = if let Some(config_dir) = dirs::config_dir() {
+        let file_path = if let Some(dir) = config_dir {
+            dir.join(format!("tokens_{}.json", account))
+        } else if let Some(config_dir) = dirs::config_dir() {
             config_dir
                 .join("workspace-cli")
                 .join(format!("tokens_{}.json", account))
